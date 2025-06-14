@@ -6,6 +6,22 @@ class BookmarksDashboard {
         
         this.initializeEventListeners();
         this.loadBookmarks();
+        this.initializeTheme();
+    }
+
+    initializeTheme() {
+        // Get saved theme or default to dark
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        // Add theme toggle listener
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
     }
 
     initializeEventListeners() {
