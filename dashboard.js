@@ -147,7 +147,7 @@ class BookmarksDashboard {
 
             const collapseButton = document.createElement('button');
             collapseButton.className = 'btn collapse-folder';
-            collapseButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>';
+            collapseButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>';
 
             controls.appendChild(addButton);
             controls.appendChild(removeButton);
@@ -269,7 +269,7 @@ class BookmarksDashboard {
     toggleFolder(bookmarksGrid, collapseButton) {
         const isCollapsed = bookmarksGrid.style.display === 'none';
         bookmarksGrid.style.display = isCollapsed ? 'grid' : 'none';
-        collapseButton.innerHTML = isCollapsed ? '▼' : '▶';
+        collapseButton.classList.toggle('collapsed');
     }
 
     handleDragStart(e, element) {
