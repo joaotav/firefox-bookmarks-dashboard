@@ -124,6 +124,30 @@ h1 {
     color: var(--accent-color);
 }
 
+.new-folder {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.new-folder:hover {
+    background-color: rgba(74, 158, 255, 0.1);
+}
+
+.new-folder svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+
 .btn-remove {
     color: var(--danger-color);
 }

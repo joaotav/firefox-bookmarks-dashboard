@@ -44,10 +44,13 @@ class BookmarksDashboard {
             const bookmarks = await browser.bookmarks.getTree();
             console.log('Loading bookmarks tree:', bookmarks[0]);
             
-            // Process only the root node's children
+            // Process only Bookmarks Menu and Bookmarks Toolbar
             if (bookmarks[0] && bookmarks[0].children) {
                 bookmarks[0].children.forEach(child => {
-                    this.processBookmarks(child);
+                    // Only process Bookmarks Menu and Bookmarks Toolbar
+                    if (child.id === 'menu________' || child.id === 'toolbar_____') {
+                        this.processBookmarks(child);
+                    }
                 });
             }
             
@@ -74,11 +77,14 @@ class BookmarksDashboard {
                     url: node.url
                 });
             } else {
-                this.uncategorizedBookmarks.push({
-                    id: node.id,
-                    title: node.title,
-                    url: node.url
-                });
+                // Only add to uncategorized if it's directly under Bookmarks Menu or Toolbar
+                if (node.parentId === 'menu________' || node.parentId === 'toolbar_____') {
+                    this.uncategorizedBookmarks.push({
+                        id: node.id,
+                        title: node.title,
+                        url: node.url
+                    });
+                }
             }
         } else if (node.type === 'folder' && node.id !== 'root________') {
             // Only process non-root folders
@@ -94,6 +100,13 @@ class BookmarksDashboard {
 
     async renderBookmarks() {
         this.bookmarksContainer.innerHTML = '';
+        
+        // Add New Folder button
+        const newFolderButton = document.createElement('button');
+        newFolderButton.className = 'btn btn-add new-folder';
+        newFolderButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg> New Folder';
+        newFolderButton.addEventListener('click', () => this.createFolder());
+        this.bookmarksContainer.appendChild(newFolderButton);
         
         // Render uncategorized bookmarks if any exist
         if (this.uncategorizedBookmarks.length > 0) {
@@ -119,8 +132,6 @@ class BookmarksDashboard {
 
         // Render folders
         for (const [folderId, bookmarks] of this.folders) {
-            if (bookmarks.length === 0) continue;
-
             const folder = document.createElement('div');
             folder.className = 'bookmark-folder';
             folder.draggable = true;
@@ -169,7 +180,6 @@ class BookmarksDashboard {
 
             // Event Listeners
             title.addEventListener('blur', () => this.renameFolder(folderId, title.textContent));
-            addButton.addEventListener('click', () => this.addBookmark(folderId));
             removeButton.addEventListener('click', () => this.removeFolder(folderId));
             collapseButton.addEventListener('click', () => this.toggleFolder(bookmarksGrid, collapseButton));
 
@@ -226,20 +236,51 @@ class BookmarksDashboard {
         }
     }
 
-    async addBookmark(folderId) {
-        const url = prompt('Enter bookmark URL:');
-        if (url) {
-            const title = prompt('Enter bookmark title:');
+    async createFolder() {
+        const title = prompt('Enter folder name:');
+        if (title) {
             try {
-                await browser.bookmarks.create({
-                    parentId: folderId,
-                    title: title || url,
-                    url: url
+                const folder = await browser.bookmarks.create({
+                    title: title,
+                    type: 'folder',
+                    parentId: 'toolbar_____'  // Firefox's Bookmarks Toolbar ID
                 });
-                await this.loadBookmarks();
+                console.log('Folder created:', folder);
+                window.location.reload();
             } catch (error) {
-                console.error('Error adding bookmark:', error);
+                console.error('Error creating folder:', error);
+                alert('Failed to create folder: ' + error.message);
             }
+        }
+    }
+
+    async addBookmark(folderId) {
+        const title = prompt('Enter bookmark title:');
+        if (!title) return;
+
+        const url = prompt('Enter bookmark URL:');
+        if (!url) return;
+
+        try {
+            // Create the bookmark
+            const bookmark = await browser.bookmarks.create({
+                title: title,
+                url: url
+            });
+            console.log('Bookmark created:', bookmark);
+
+            // If it's not for uncategorized, move it to the specified folder
+            if (folderId !== 'uncategorized') {
+                await browser.bookmarks.move(bookmark.id, {
+                    parentId: folderId
+                });
+            }
+
+            // Reload the dashboard
+            window.location.reload();
+        } catch (error) {
+            console.error('Error adding bookmark:', error);
+            alert('Failed to create bookmark: ' + error.message);
         }
     }
 
