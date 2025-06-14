@@ -256,13 +256,13 @@ class BookmarksDashboard {
     }
 
     async removeBookmark(bookmarkId) {
-        if (confirm('Are you sure you want to remove this bookmark?')) {
-            try {
+        try {
+            if (confirm('Are you sure you want to remove this bookmark?')) {
                 await browser.bookmarks.remove(bookmarkId);
-                await this.loadBookmarks();
-            } catch (error) {
-                console.error('Error removing bookmark:', error);
+                window.location.reload();
             }
+        } catch (error) {
+            console.error('Error removing bookmark:', error);
         }
     }
 
