@@ -87,15 +87,37 @@ h1 {
 .btn {
     background: none;
     border: none;
+    color: var(--text-secondary);
     cursor: pointer;
     padding: 0.5rem;
     border-radius: 4px;
     transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    background-color: rgba(255, 255, 255, 0.05);
     transform: scale(1.05);
+}
+
+.btn svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+
+.btn.add-bookmark svg {
+    stroke-width: 1.5;
+}
+
+.btn.remove-bookmark svg {
+    width: 1.4rem;
+    height: 1.4rem;
 }
 
 .btn-add {

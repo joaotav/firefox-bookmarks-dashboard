@@ -1,7 +1,33 @@
 class BookmarksDashboard {
     constructor() {
-        this.container = document.getElementById('bookmarks-container');
-        this.init();
+        this.bookmarksContainer = document.getElementById('bookmarks-container');
+        this.folders = new Map();
+        this.uncategorizedBookmarks = [];
+        
+        this.initializeEventListeners();
+        this.loadBookmarks();
+    }
+
+    initializeEventListeners() {
+        // Bookmark container event delegation
+        this.bookmarksContainer.addEventListener('click', (e) => {
+            const target = e.target.closest('.btn');
+            if (!target) return;
+
+            if (target.classList.contains('add-bookmark')) {
+                const folderId = target.dataset.folderId;
+                this.addBookmark(folderId);
+            } else if (target.classList.contains('remove-bookmark')) {
+                const bookmarkId = target.closest('.bookmark-card').dataset.id;
+                this.removeBookmark(bookmarkId);
+            }
+        });
+
+        // Listen for bookmark changes
+        browser.bookmarks.onCreated.addListener(() => this.loadBookmarks());
+        browser.bookmarks.onRemoved.addListener(() => this.loadBookmarks());
+        browser.bookmarks.onChanged.addListener(() => this.loadBookmarks());
+        browser.bookmarks.onMoved.addListener(() => this.loadBookmarks());
     }
 
     async init() {
@@ -10,91 +36,129 @@ class BookmarksDashboard {
     }
 
     async loadBookmarks() {
-        const bookmarks = await browser.bookmarks.getTree();
-        // Find the Bookmarks Toolbar folder
-        const toolbarFolder = bookmarks[0].children.find(node => node.title === 'Bookmarks Toolbar');
-        if (toolbarFolder) {
-            this.renderBookmarks(toolbarFolder.children);
+        try {
+            const bookmarks = await browser.bookmarks.getTree();
+            this.processBookmarks(bookmarks[0]);
+            await this.renderBookmarks();
+        } catch (error) {
+            console.error('Error loading bookmarks:', error);
         }
     }
 
-    renderBookmarks(bookmarks) {
-        this.container.innerHTML = '';
-        bookmarks.forEach(bookmark => {
-            if (bookmark.type === 'folder') {
-                this.createFolderElement(bookmark);
+    processBookmarks(node, parentId = null) {
+        if (node.type === 'bookmark') {
+            if (parentId) {
+                if (!this.folders.has(parentId)) {
+                    this.folders.set(parentId, []);
+                }
+                this.folders.get(parentId).push({
+                    id: node.id,
+                    title: node.title,
+                    url: node.url
+                });
+            } else {
+                this.uncategorizedBookmarks.push({
+                    id: node.id,
+                    title: node.title,
+                    url: node.url
+                });
             }
-        });
+        } else if (node.type === 'folder' && node.id !== 'root________') {
+            this.folders.set(node.id, []);
+            if (node.children) {
+                node.children.forEach(child => this.processBookmarks(child, node.id));
+            }
+        } else if (node.children) {
+            node.children.forEach(child => this.processBookmarks(child, parentId));
+        }
     }
 
-    createFolderElement(folder) {
-        const folderElement = document.createElement('div');
-        folderElement.className = 'bookmark-folder';
-        folderElement.draggable = true;
-        folderElement.dataset.id = folder.id;
-
-        const header = document.createElement('div');
-        header.className = 'folder-header';
-
-        const title = document.createElement('div');
-        title.className = 'folder-title';
-        title.contentEditable = true;
-        title.textContent = folder.title;
-
-        const controls = document.createElement('div');
-        controls.className = 'folder-controls';
-
-        const addButton = document.createElement('button');
-        addButton.className = 'btn btn-add';
-        addButton.innerHTML = '➕';
-        addButton.title = 'Add Bookmark';
-
-        const removeButton = document.createElement('button');
-        removeButton.className = 'btn btn-remove';
-        removeButton.innerHTML = '✖';
-        removeButton.title = 'Remove Folder';
-
-        const collapseButton = document.createElement('button');
-        collapseButton.className = 'btn';
-        collapseButton.innerHTML = '▼';
-        collapseButton.title = 'Collapse/Expand';
-
-        controls.appendChild(addButton);
-        controls.appendChild(removeButton);
-        controls.appendChild(collapseButton);
-        header.appendChild(title);
-        header.appendChild(controls);
-        folderElement.appendChild(header);
-
-        const bookmarksGrid = document.createElement('div');
-        bookmarksGrid.className = 'bookmarks-grid';
+    async renderBookmarks() {
+        this.bookmarksContainer.innerHTML = '';
         
-        // Process all children (both bookmarks and nested folders)
-        folder.children.forEach(child => {
-            if (child.type === 'bookmark') {
-                bookmarksGrid.appendChild(this.createBookmarkElement(child));
-            } else if (child.type === 'folder') {
-                // Create a nested folder
-                const nestedFolder = this.createFolderElement(child);
-                bookmarksGrid.appendChild(nestedFolder);
-            }
-        });
+        // Render uncategorized bookmarks if any exist
+        if (this.uncategorizedBookmarks.length > 0) {
+            const uncategorizedFolder = document.createElement('div');
+            uncategorizedFolder.className = 'bookmark-folder';
+            uncategorizedFolder.innerHTML = `
+                <div class="folder-header">
+                    <h2 class="folder-title">Uncategorized Bookmarks</h2>
+                    <button class="btn add-bookmark" data-folder-id="uncategorized">
+                        <svg viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                    </button>
+                </div>
+                <div class="bookmarks-grid"></div>
+            `;
+            
+            const bookmarksGrid = uncategorizedFolder.querySelector('.bookmarks-grid');
+            this.uncategorizedBookmarks.forEach(bookmark => {
+                bookmarksGrid.appendChild(this.createBookmarkElement(bookmark));
+            });
+            
+            this.bookmarksContainer.appendChild(uncategorizedFolder);
+        }
 
-        folderElement.appendChild(bookmarksGrid);
-        this.container.appendChild(folderElement);
+        // Render folders
+        for (const [folderId, bookmarks] of this.folders) {
+            if (bookmarks.length === 0) continue;
 
-        // Event Listeners
-        title.addEventListener('blur', () => this.renameFolder(folder.id, title.textContent));
-        addButton.addEventListener('click', () => this.addBookmark(folder.id));
-        removeButton.addEventListener('click', () => this.removeFolder(folder.id));
-        collapseButton.addEventListener('click', () => this.toggleFolder(bookmarksGrid, collapseButton));
+            const folder = document.createElement('div');
+            folder.className = 'bookmark-folder';
+            folder.draggable = true;
+            folder.dataset.id = folderId;
 
-        // Drag and Drop
-        folderElement.addEventListener('dragstart', (e) => this.handleDragStart(e, folderElement));
-        folderElement.addEventListener('dragover', (e) => this.handleDragOver(e));
-        folderElement.addEventListener('drop', (e) => this.handleDrop(e, folderElement));
+            const header = document.createElement('div');
+            header.className = 'folder-header';
 
-        return folderElement;
+            const title = document.createElement('h2');
+            title.className = 'folder-title';
+            title.contentEditable = true;
+            title.textContent = await this.getFolderName(folderId);
+
+            const controls = document.createElement('div');
+            controls.className = 'folder-controls';
+
+            const addButton = document.createElement('button');
+            addButton.className = 'btn add-bookmark';
+            addButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>';
+
+            const removeButton = document.createElement('button');
+            removeButton.className = 'btn remove-folder';
+            removeButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>';
+
+            const collapseButton = document.createElement('button');
+            collapseButton.className = 'btn collapse-folder';
+            collapseButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>';
+
+            controls.appendChild(addButton);
+            controls.appendChild(removeButton);
+            controls.appendChild(collapseButton);
+
+            header.appendChild(title);
+            header.appendChild(controls);
+            folder.appendChild(header);
+
+            const bookmarksGrid = document.createElement('div');
+            bookmarksGrid.className = 'bookmarks-grid';
+            
+            bookmarks.forEach(bookmark => {
+                bookmarksGrid.appendChild(this.createBookmarkElement(bookmark));
+            });
+
+            folder.appendChild(bookmarksGrid);
+            this.bookmarksContainer.appendChild(folder);
+
+            // Event Listeners
+            title.addEventListener('blur', () => this.renameFolder(folderId, title.textContent));
+            addButton.addEventListener('click', () => this.addBookmark(folderId));
+            removeButton.addEventListener('click', () => this.removeFolder(folderId));
+            collapseButton.addEventListener('click', () => this.toggleFolder(bookmarksGrid, collapseButton));
+
+            // Drag and Drop
+            folder.addEventListener('dragstart', (e) => this.handleDragStart(e, folder));
+            folder.addEventListener('dragover', (e) => this.handleDragOver(e));
+            folder.addEventListener('drop', (e) => this.handleDrop(e, folder));
+        }
     }
 
     createBookmarkElement(bookmark) {
@@ -236,6 +300,11 @@ class BookmarksDashboard {
         browser.bookmarks.onRemoved.addListener(() => this.loadBookmarks());
         browser.bookmarks.onChanged.addListener(() => this.loadBookmarks());
         browser.bookmarks.onMoved.addListener(() => this.loadBookmarks());
+    }
+
+    async getFolderName(folderId) {
+        const folder = await browser.bookmarks.get(folderId);
+        return folder[0].title;
     }
 }
 
