@@ -11,7 +11,11 @@ class BookmarksDashboard {
 
     async loadBookmarks() {
         const bookmarks = await browser.bookmarks.getTree();
-        this.renderBookmarks(bookmarks[0].children);
+        // Find the Bookmarks Toolbar folder
+        const toolbarFolder = bookmarks[0].children.find(node => node.title === 'Bookmarks Toolbar');
+        if (toolbarFolder) {
+            this.renderBookmarks(toolbarFolder.children);
+        }
     }
 
     renderBookmarks(bookmarks) {
@@ -64,9 +68,15 @@ class BookmarksDashboard {
 
         const bookmarksGrid = document.createElement('div');
         bookmarksGrid.className = 'bookmarks-grid';
-        folder.children.forEach(bookmark => {
-            if (bookmark.type === 'bookmark') {
-                bookmarksGrid.appendChild(this.createBookmarkElement(bookmark));
+        
+        // Process all children (both bookmarks and nested folders)
+        folder.children.forEach(child => {
+            if (child.type === 'bookmark') {
+                bookmarksGrid.appendChild(this.createBookmarkElement(child));
+            } else if (child.type === 'folder') {
+                // Create a nested folder
+                const nestedFolder = this.createFolderElement(child);
+                bookmarksGrid.appendChild(nestedFolder);
             }
         });
 
@@ -83,6 +93,8 @@ class BookmarksDashboard {
         folderElement.addEventListener('dragstart', (e) => this.handleDragStart(e, folderElement));
         folderElement.addEventListener('dragover', (e) => this.handleDragOver(e));
         folderElement.addEventListener('drop', (e) => this.handleDrop(e, folderElement));
+
+        return folderElement;
     }
 
     createBookmarkElement(bookmark) {
@@ -149,13 +161,28 @@ class BookmarksDashboard {
     }
 
     async removeFolder(folderId) {
-        if (confirm('Are you sure you want to remove this folder and all its bookmarks?')) {
-            try {
+        try {
+            // Get the folder details first
+            const folder = await browser.bookmarks.get(folderId);
+            if (!folder || folder.length === 0) {
+                console.error('Folder not found');
+                return;
+            }
+
+            const folderData = folder[0];
+            
+            // Check if it's a special folder (Bookmarks Menu, Other Bookmarks, etc.)
+            if (folderData.parentId === 'root________') {
+                console.error('Cannot delete root-level folders');
+                return;
+            }
+
+            if (confirm('Are you sure you want to remove this folder and all its bookmarks?')) {
                 await browser.bookmarks.removeTree(folderId);
                 await this.loadBookmarks();
-            } catch (error) {
-                console.error('Error removing folder:', error);
             }
+        } catch (error) {
+            console.error('Error removing folder:', error);
         }
     }
 
