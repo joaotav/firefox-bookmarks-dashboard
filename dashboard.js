@@ -103,6 +103,11 @@ class BookmarksDashboard {
         bookmarkElement.draggable = true;
         bookmarkElement.dataset.id = bookmark.id;
 
+        const removeButton = document.createElement('button');
+        removeButton.className = 'btn btn-remove';
+        removeButton.innerHTML = '✖';
+        removeButton.title = 'Remove Bookmark';
+
         const title = document.createElement('div');
         title.className = 'bookmark-title';
         title.textContent = bookmark.title;
@@ -111,14 +116,9 @@ class BookmarksDashboard {
         url.className = 'bookmark-url';
         url.textContent = bookmark.url;
 
-        const removeButton = document.createElement('button');
-        removeButton.className = 'btn btn-remove';
-        removeButton.innerHTML = '✖';
-        removeButton.title = 'Remove Bookmark';
-
+        bookmarkElement.appendChild(removeButton);
         bookmarkElement.appendChild(title);
         bookmarkElement.appendChild(url);
-        bookmarkElement.appendChild(removeButton);
 
         // Event Listeners
         bookmarkElement.addEventListener('click', () => window.open(bookmark.url, '_blank'));

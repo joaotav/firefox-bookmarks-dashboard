@@ -96,16 +96,31 @@ h1 {
     border-radius: 6px;
     padding: 1rem;
     transition: transform 0.2s;
+    position: relative;
 }
 
 .bookmark-card:hover {
     transform: translateY(-2px);
 }
 
+.bookmark-card .btn-remove {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.bookmark-card:hover .btn-remove {
+    opacity: 1;
+}
+
 .bookmark-title {
     font-size: 1rem;
     color: var(--text-primary);
     margin-bottom: 0.5rem;
+    padding-right: 1.5rem;
 }
 
 .bookmark-url {
