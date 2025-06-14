@@ -210,13 +210,8 @@ class BookmarksDashboard {
         title.className = 'bookmark-title';
         title.textContent = bookmark.title;
 
-        const url = document.createElement('div');
-        url.className = 'bookmark-url';
-        url.textContent = bookmark.url;
-
         bookmarkElement.appendChild(removeButton);
         bookmarkElement.appendChild(title);
-        bookmarkElement.appendChild(url);
 
         // Event Listeners
         bookmarkElement.addEventListener('click', () => window.open(bookmark.url, '_blank'));
