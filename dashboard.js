@@ -14,10 +14,7 @@ class BookmarksDashboard {
             const target = e.target.closest('.btn');
             if (!target) return;
 
-            if (target.classList.contains('add-bookmark')) {
-                const folderId = target.dataset.folderId;
-                this.addBookmark(folderId);
-            } else if (target.classList.contains('remove-bookmark')) {
+            if (target.classList.contains('remove-bookmark')) {
                 const bookmarkId = target.closest('.bookmark-card').dataset.id;
                 this.removeBookmark(bookmarkId);
             }
@@ -115,9 +112,6 @@ class BookmarksDashboard {
             uncategorizedFolder.innerHTML = `
                 <div class="folder-header">
                     <h2 class="folder-title">Uncategorized Bookmarks</h2>
-                    <button class="btn add-bookmark" data-folder-id="uncategorized">
-                        <svg viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
-                    </button>
                 </div>
                 <div class="bookmarks-grid"></div>
             `;
@@ -148,10 +142,6 @@ class BookmarksDashboard {
             const controls = document.createElement('div');
             controls.className = 'folder-controls';
 
-            const addButton = document.createElement('button');
-            addButton.className = 'btn add-bookmark';
-            addButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>';
-
             const removeButton = document.createElement('button');
             removeButton.className = 'btn remove-folder';
             removeButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>';
@@ -160,7 +150,6 @@ class BookmarksDashboard {
             collapseButton.className = 'btn collapse-folder';
             collapseButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>';
 
-            controls.appendChild(addButton);
             controls.appendChild(removeButton);
             controls.appendChild(collapseButton);
 
@@ -251,36 +240,6 @@ class BookmarksDashboard {
                 console.error('Error creating folder:', error);
                 alert('Failed to create folder: ' + error.message);
             }
-        }
-    }
-
-    async addBookmark(folderId) {
-        const title = prompt('Enter bookmark title:');
-        if (!title) return;
-
-        const url = prompt('Enter bookmark URL:');
-        if (!url) return;
-
-        try {
-            // Create the bookmark
-            const bookmark = await browser.bookmarks.create({
-                title: title,
-                url: url
-            });
-            console.log('Bookmark created:', bookmark);
-
-            // If it's not for uncategorized, move it to the specified folder
-            if (folderId !== 'uncategorized') {
-                await browser.bookmarks.move(bookmark.id, {
-                    parentId: folderId
-                });
-            }
-
-            // Reload the dashboard
-            window.location.reload();
-        } catch (error) {
-            console.error('Error adding bookmark:', error);
-            alert('Failed to create bookmark: ' + error.message);
         }
     }
 

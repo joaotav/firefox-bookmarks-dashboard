@@ -111,13 +111,8 @@ h1 {
     fill: none;
 }
 
-.btn.add-bookmark svg {
-    stroke-width: 1.5;
-}
-
-.btn.remove-bookmark svg {
-    width: 1.4rem;
-    height: 1.4rem;
+.btn-remove {
+    color: var(--danger-color);
 }
 
 .btn-add {
@@ -146,10 +141,6 @@ h1 {
     stroke: currentColor;
     stroke-width: 2;
     fill: none;
-}
-
-.btn-remove {
-    color: var(--danger-color);
 }
 
 .btn.collapse-folder {
