@@ -10,10 +10,10 @@
 }
 
 :root[data-theme="light"] {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f5f5f5;
-    --text-primary: #1a1a1a;
-    --text-secondary: #666666;
+    --bg-primary: #f5f5f7;
+    --bg-secondary: #e8e8ed;
+    --text-primary: #2c2c2c;
+    --text-secondary: #4a4a4a;
     --accent-color: #0066cc;
     --danger-color: #cc0000;
     --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -272,4 +272,39 @@ h1 {
 
 .drag-over {
     border: 2px dashed var(--accent-color);
+}
+
+.control-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.btn.expand-all {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.btn.expand-all:hover {
+    background-color: rgba(74, 158, 255, 0.1);
+}
+
+.btn.expand-all svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    transition: transform 0.2s ease;
+}
+
+.btn.expand-all:not(:hover) svg {
+    transform: rotate(90deg);
 } 

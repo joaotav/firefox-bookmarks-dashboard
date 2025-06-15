@@ -114,12 +114,25 @@ class BookmarksDashboard {
     async renderBookmarks() {
         this.bookmarksContainer.innerHTML = '';
         
+        // Add control buttons container
+        const controlButtons = document.createElement('div');
+        controlButtons.className = 'control-buttons';
+        
         // Add New Folder button
         const newFolderButton = document.createElement('button');
         newFolderButton.className = 'btn btn-add new-folder';
         newFolderButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg> New Folder';
         newFolderButton.addEventListener('click', () => this.createFolder());
-        this.bookmarksContainer.appendChild(newFolderButton);
+        
+        // Add Expand/Collapse All button
+        const expandAllButton = document.createElement('button');
+        expandAllButton.className = 'btn btn-add expand-all';
+        expandAllButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg> Expand All';
+        expandAllButton.addEventListener('click', () => this.toggleAllFolders(expandAllButton));
+        
+        controlButtons.appendChild(newFolderButton);
+        controlButtons.appendChild(expandAllButton);
+        this.bookmarksContainer.appendChild(controlButtons);
         
         // Render uncategorized bookmarks if any exist
         if (this.uncategorizedBookmarks.length > 0) {
@@ -327,6 +340,21 @@ class BookmarksDashboard {
     async getFolderName(folderId) {
         const folder = await browser.bookmarks.get(folderId);
         return folder[0].title;
+    }
+
+    toggleAllFolders(button) {
+        const isExpanding = button.textContent.includes('Expand');
+        const bookmarksGrids = document.querySelectorAll('.bookmarks-grid');
+        const collapseButtons = document.querySelectorAll('.collapse-folder');
+        
+        bookmarksGrids.forEach((grid, index) => {
+            grid.style.display = isExpanding ? 'grid' : 'none';
+            collapseButtons[index].classList.toggle('collapsed', !isExpanding);
+        });
+        
+        button.innerHTML = isExpanding ? 
+            '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg> Collapse All' :
+            '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg> Expand All';
     }
 }
 
