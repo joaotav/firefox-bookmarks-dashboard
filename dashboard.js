@@ -175,6 +175,7 @@ class BookmarksDashboard {
 
             const bookmarksGrid = document.createElement('div');
             bookmarksGrid.className = 'bookmarks-grid';
+            bookmarksGrid.style.display = 'none';  // Start collapsed
             
             bookmarks.forEach(bookmark => {
                 bookmarksGrid.appendChild(this.createBookmarkElement(bookmark));
@@ -186,7 +187,12 @@ class BookmarksDashboard {
             // Event Listeners
             title.addEventListener('blur', () => this.renameFolder(folderId, title.textContent));
             removeButton.addEventListener('click', () => this.removeFolder(folderId));
-            collapseButton.addEventListener('click', () => this.toggleFolder(bookmarksGrid, collapseButton));
+            collapseButton.addEventListener('click', (e) => {
+                e.stopPropagation();  // Prevent header click from triggering
+                this.toggleFolder(bookmarksGrid, collapseButton);
+            });
+            header.addEventListener('click', () => this.toggleFolder(bookmarksGrid, collapseButton));
+            collapseButton.classList.add('collapsed');  // Add collapsed class to button
 
             // Drag and Drop
             folder.addEventListener('dragstart', (e) => this.handleDragStart(e, folder));
@@ -214,7 +220,7 @@ class BookmarksDashboard {
         bookmarkElement.appendChild(title);
 
         // Event Listeners
-        bookmarkElement.addEventListener('click', () => window.open(bookmark.url, '_blank'));
+        bookmarkElement.addEventListener('click', () => window.location.href = bookmark.url);
         removeButton.addEventListener('click', (e) => {
             e.stopPropagation();
             this.removeBookmark(bookmark.id);

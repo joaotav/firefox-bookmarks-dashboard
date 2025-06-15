@@ -93,8 +93,8 @@ h1 {
 .bookmark-folder {
     background-color: var(--bg-secondary);
     border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 1rem;
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.75rem;
     box-shadow: var(--card-shadow);
     border: 1px solid transparent;
     transition: all 0.2s ease;
@@ -122,7 +122,26 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+}
+
+.btn.collapse-folder {
+    transition: transform 0.2s ease;
+}
+
+.btn.collapse-folder.collapsed {
+    transform: rotate(90deg);
+}
+
+.btn.collapse-folder svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
 }
 
 .folder-title {
@@ -189,22 +208,6 @@ h1 {
 }
 
 .new-folder svg {
-    width: 1.25rem;
-    height: 1.25rem;
-    stroke: currentColor;
-    stroke-width: 2;
-    fill: none;
-}
-
-.btn.collapse-folder {
-    transition: transform 0.2s ease;
-}
-
-.btn.collapse-folder.collapsed {
-    transform: rotate(90deg);
-}
-
-.btn.collapse-folder svg {
     width: 1.25rem;
     height: 1.25rem;
     stroke: currentColor;
