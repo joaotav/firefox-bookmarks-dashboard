@@ -352,9 +352,18 @@ class BookmarksDashboard {
             collapseButtons[index].classList.toggle('collapsed', !isExpanding);
         });
         
-        button.innerHTML = isExpanding ? 
-            '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg> Collapse All' :
-            '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg> Expand All';
+        // Clear the button content
+        button.textContent = isExpanding ? 'Collapse All' : 'Expand All';
+        
+        // Create and append the SVG
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M9 5l7 7-7 7');
+        
+        svg.appendChild(path);
+        button.insertBefore(svg, button.firstChild);
     }
 }
 
